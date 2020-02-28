@@ -1,0 +1,10 @@
+Package: com.thomz.foldy
+Name: Foldy
+Depends: mobilesubstrate, ws.hbang.common, com.creaturesurvive.libcscolorpicker
+Version: 1.0
+Architecture: iphoneos-arm
+Description: Make folders yours
+Maintainer: Thomz
+Author: Thomz
+Section: Tweaks
+Icon: file:///Library/PreferenceBundles/UTrynaShutDown.bundle/icon@2x.png
