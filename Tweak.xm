@@ -17,7 +17,7 @@ BOOL clearMode;
 BOOL titleFontSize;
 double customTitleFontSize;
 BOOL hideTitle;
-//BOOL boldTitle;
+BOOL boldTitle;
 BOOL enableTitleTextAlignment;
 int titleTextAlignment;
 BOOL enableTextColor;
@@ -31,6 +31,8 @@ double customCornerRadius;
 
 BOOL backgroundAlpha;
 double customBackgroundAlpha;
+
+BOOL pinchToClose;
 
 BOOL enableBackgroundColor;
 BOOL backgroundColor;
@@ -57,6 +59,9 @@ BOOL enableCustomCustomLayout;
 int rows;
 int columns;
 int numberOfRowsColumns;
+BOOL hideFolderIconGrid;
+BOOL resizeFolderIcon;
+double setFolderIconSize;
 
 BOOL hidePageDots;
 
@@ -71,7 +76,7 @@ void prefs(){
             @"titleFontSize": @NO,
             @"customTitleFontSize": @20,
             @"hideTitle": @NO,
-            //@"boldTitle":@NO,
+            @"boldTitle":@NO,
             @"enableTitleTextAlignment": @NO,
             @"titleTextAlignment": @1,
             @"enableTextColor": @NO,
@@ -85,6 +90,8 @@ void prefs(){
 
             @"backgroundAlpha": @NO,
             @"customBackgroundAlpha": @1,
+
+            @"pinchToClose": @NO,
 
             @"enableBackgroundColor": @NO,
             @"backgroundColor": @NO,
@@ -111,6 +118,9 @@ void prefs(){
             @"customLayoutRows": @3,
             @"customLayoutColumns": @3,
             @"numberOfRowsColumns":@1,
+            @"hideFolderIconGrid": @NO,
+            @"resizeFolderIcon": @NO,
+            @"setFolderIconSize": @1,
 
             @"hidePageDots": @NO,
 
@@ -125,7 +135,7 @@ void prefs(){
         [preferences registerBool:&titleFontSize default:NO forKey:@"titleFontSize"];
         [preferences registerDouble:&customTitleFontSize default:20 forKey:@"customTitleFontSize"];
         [preferences registerBool:&hideTitle default:NO forKey:@"hideTitle"];
-        //[preferences registerBool:&boldTitle default:NO forKey:@"boldTitle"];
+        [preferences registerBool:&boldTitle default:NO forKey:@"boldTitle"];
         [preferences registerBool:&enableTitleTextAlignment default:NO forKey:@"enableTitleTextAlignment"];
         titleTextAlignment = [[preferences objectForKey:@"titleTextAlignment"] intValue];
         [preferences registerBool:&enableTextColor default:NO forKey:@"enableTextColor"];
@@ -139,6 +149,8 @@ void prefs(){
 
         [preferences registerBool:&backgroundAlpha default:NO forKey:@"backgroundAlpha"];
         [preferences registerDouble:&customBackgroundAlpha default:1 forKey:@"customBackgroundAlpha"];
+
+        [preferences registerBool:&pinchToClose default:NO forKey:@"pinchToClose"];
 
         [preferences registerBool:&enableBackgroundColor default:NO forKey:@"enableBackgroundColor"];
         [preferences registerBool:&backgroundColor default:NO forKey:@"backgroundColor"];
@@ -165,6 +177,9 @@ void prefs(){
         numberOfRowsColumns = [[preferences objectForKey:@"numberOfRowsColumns"] intValue];
         rows = [[preferences objectForKey:@"customLayoutRows"] intValue];
         columns = [[preferences objectForKey:@"customLayoutColumns"] intValue];
+        [preferences registerBool:&hideFolderIconGrid default:NO forKey:@"hideFolderIconGrid"];
+        [preferences registerBool:&resizeFolderIcon default:NO forKey:@"resizeFolderIcon"];
+        [preferences registerDouble:&setFolderIconSize default:1 forKey:@"setFolderIconSize"];
 
         [preferences registerBool:&hidePageDots default:NO forKey:@"hidePageDots"];
  
@@ -173,6 +188,7 @@ void prefs(){
 %group all
 %hook SBFloatyFolderView
 
+// background alpha
 -(void)setBackgroundAlpha:(double)arg1 {
     if (isEnabled){
         if(clearMode){
@@ -186,6 +202,7 @@ void prefs(){
     } else {}
 }
 
+// hide the titles
 -(BOOL)_showsTitle {
     if(isEnabled){
         if(clearMode && !hideTitle){
@@ -203,6 +220,7 @@ void prefs(){
     }
 }
 
+// corner radius
 -(void)setCornerRadius:(double)arg1 {
     if(isEnabled){
         if(cornerRadius){
@@ -219,6 +237,7 @@ void prefs(){
     }
 }
 
+// title font size 
 -(double)_titleFontSize {
     if(isEnabled){
         if(titleFontSize){
@@ -231,6 +250,7 @@ void prefs(){
     }
 }
 
+// change the frame
 -(CGRect)_frameForScalingView {
 
     preferences = [HBPreferences preferencesForIdentifier:@"com.thomz.foldy"];
@@ -267,6 +287,7 @@ void prefs(){
 
 }
 
+// set background color or gradient
 -(void)layoutSubviews {
 
     UIColor *selectedColor = [UIColor cscp_colorFromHexString:customBackgroundColor];
@@ -321,9 +342,10 @@ void prefs(){
 
 %end
 
-//folder inside grid
+// folder inside grid
 %hook SBFolderIconListView
 
+// return the number of rows on iOS 12
 + (unsigned long long)maxVisibleIconRowsInterfaceOrientation:(long long)arg1 {
 
     if(isEnabled){
@@ -383,6 +405,7 @@ void prefs(){
     
 }
 
+// return the number of columns on iOS 12
 + (unsigned long long)iconColumnsForInterfaceOrientation:(long long)arg1 {
     
     if(isEnabled){
@@ -439,6 +462,7 @@ void prefs(){
     } else {return %orig;}
 }
 
+// 3 next methods just fixes the icon when modifying layout
 - (CGFloat)topIconInset {
 
     CGFloat orig = %orig;
@@ -569,7 +593,414 @@ void prefs(){
 
 %end
 
-//folder icon grid
+%hook SBIconListGridLayoutConfiguration // iOS 12 was better ;(
+
+%property (nonatomic, assign) BOOL viewIsAFolder;
+
+%new // this is a weird way to check if there is a folder but hey it works
+-(BOOL)detectFolders {
+    int folderRows = MSHookIvar<int>(self, "_numberOfPortraitRows");
+    int folderColumns = MSHookIvar<int>(self, "_numberOfPortraitColumns");
+ 
+    if(folderRows == 3 && folderColumns == 3){
+        self.viewIsAFolder = YES;
+    } else if(folderRows == 4 && folderColumns == 4){ 
+        self.viewIsAFolder = YES;
+    } else if(folderRows == 1 && folderColumns == 4){
+        self.viewIsAFolder = NO;
+    } else {
+        self.viewIsAFolder = NO;
+    }
+
+    return self.viewIsAFolder;
+}
+
+// return custom rows on iOS 13
+-(unsigned long long)numberOfPortraitRows {
+
+    [self detectFolders];
+
+    if(isEnabled){
+        if(enableCustomLayout){
+            if(self.viewIsAFolder){
+                if(enableCustomPremadeLayout && !enableCustomCustomLayout){
+
+                    if (numberOfRowsColumns == 0){
+
+                        return 2;
+                    }
+
+                    else if(numberOfRowsColumns == 1){
+
+                        return %orig;
+                    }
+
+                    else if(numberOfRowsColumns == 2){
+
+                        return 4; 
+                    } else {return %orig;}
+                } else if(!enableCustomPremadeLayout && enableCustomCustomLayout){
+                    
+                    if(rows == 0){
+                        return 2;
+                    } else if(rows == 1){
+                        return 3;
+                    } else if(rows == 2){
+                        return 4;
+                    } else if(rows == 3){
+                        return 5;
+                    } else if(rows == 4){
+                        return 6;
+                    } else if(rows == 5){
+                        return 7;
+                    } else {return %orig;}
+
+                } else if(enableCustomPremadeLayout && enableCustomCustomLayout){
+                    if (numberOfRowsColumns == 0){
+
+                        return 2;
+                    }
+
+                    else if(numberOfRowsColumns == 1){
+
+                        return %orig;
+                    }
+
+                    else if(numberOfRowsColumns == 2){
+
+                    return 4; 
+                    } else {return %orig;}
+                } else {return %orig;}
+            } else {return %orig;}
+        } else {return %orig;}
+    } else {return %orig;}
+}
+
+// return custom columns on iOS 13
+-(unsigned long long)numberOfPortraitColumns {
+
+    [self detectFolders];
+
+    if(isEnabled){
+        if(enableCustomLayout){
+            if(self.viewIsAFolder){
+                if(enableCustomPremadeLayout && !enableCustomCustomLayout){
+
+                    if (numberOfRowsColumns == 0){
+
+                        return 2;
+                    }
+
+                    else if(numberOfRowsColumns == 1){
+
+                        return %orig;
+                    }
+
+                    else if(numberOfRowsColumns == 2){
+
+                        return 4; 
+                    } else {return %orig;}
+                } else if(!enableCustomPremadeLayout && enableCustomCustomLayout){
+
+                    if(columns == 0){
+                        return 2;
+                    } else if(columns == 1){
+                        return 3;
+                    } else if(columns == 2){
+                        return 4;
+                    } else if(columns == 3){
+                        return 5;
+                    } else if(columns == 4){
+                        return 6;
+                    } else if(columns == 5){
+                        return 7;
+                    } else {return %orig;}
+
+                } else if(enableCustomPremadeLayout && enableCustomCustomLayout){
+                    if (numberOfRowsColumns == 0){
+
+                        return 2;
+                    }
+
+                    else if(numberOfRowsColumns == 1){
+
+                        return %orig;
+                    }
+
+                    else if(numberOfRowsColumns == 2){
+
+                    return 4; 
+                    } else {return %orig;}
+                } else {return %orig;}
+            } else {return %orig;}
+        } else {return %orig;}
+    } else {return %orig;}
+}
+
+-(unsigned long long)numberOfLandscapeRows {
+
+    [self detectFolders];
+
+    if(isEnabled){
+        if(enableCustomLayout){
+            if(self.viewIsAFolder){
+                if(enableCustomPremadeLayout && !enableCustomCustomLayout){
+
+                    if (numberOfRowsColumns == 0){
+
+                        return 2;
+                    }
+
+                    else if(numberOfRowsColumns == 1){
+
+                        return %orig;
+                    }
+
+                    else if(numberOfRowsColumns == 2){
+
+                        return 4; 
+                    } else {return %orig;}
+                } else if(!enableCustomPremadeLayout && enableCustomCustomLayout){
+                    
+                    if(rows == 0){
+                        return 2;
+                    } else if(rows == 1){
+                        return 3;
+                    } else if(rows == 2){
+                        return 4;
+                    } else if(rows == 3){
+                        return 5;
+                    } else if(rows == 4){
+                        return 6;
+                    } else if(rows == 5){
+                        return 7;
+                    } else {return %orig;}
+
+                } else if(enableCustomPremadeLayout && enableCustomCustomLayout){
+                    if (numberOfRowsColumns == 0){
+
+                        return 2;
+                    }
+
+                    else if(numberOfRowsColumns == 1){
+
+                        return %orig;
+                    }
+
+                    else if(numberOfRowsColumns == 2){
+
+                    return 4; 
+                    } else {return %orig;}
+                } else {return %orig;}
+            } else {return %orig;}
+        } else {return %orig;}
+    } else {return %orig;}
+}
+
+-(unsigned long long)numberOfLandscapeColumns {
+
+    [self detectFolders];
+
+    if(isEnabled){
+        if(enableCustomLayout){
+            if(self.viewIsAFolder){
+                if(enableCustomPremadeLayout && !enableCustomCustomLayout){
+
+                    if (numberOfRowsColumns == 0){
+
+                        return 2;
+                    }
+
+                    else if(numberOfRowsColumns == 1){
+
+                        return %orig;
+                    }
+
+                    else if(numberOfRowsColumns == 2){
+
+                        return 4; 
+                    } else {return %orig;}
+                } else if(!enableCustomPremadeLayout && enableCustomCustomLayout){
+
+                    if(columns == 0){
+                        return 2;
+                    } else if(columns == 1){
+                        return 3;
+                    } else if(columns == 2){
+                        return 4;
+                    } else if(columns == 3){
+                        return 5;
+                    } else if(columns == 4){
+                        return 6;
+                    } else if(columns == 5){
+                        return 7;
+                    } else {return %orig;}
+
+                } else if(enableCustomPremadeLayout && enableCustomCustomLayout){
+                    if (numberOfRowsColumns == 0){
+
+                        return 2;
+                    }
+
+                    else if(numberOfRowsColumns == 1){
+
+                        return %orig;
+                    }
+
+                    else if(numberOfRowsColumns == 2){
+
+                    return 4; 
+                    } else {return %orig;}
+                } else {return %orig;}
+            } else {return %orig;}
+        } else {return %orig;}
+    } else {return %orig;}
+}
+
+%end
+
+%hook _SBIconGridWrapperView
+
+-(void)layoutSubviews {
+    %orig;
+    if(isEnabled){
+        if(hideFolderIconGrid){
+            [self setHidden:true];
+        }
+    }
+}
+
+%end
+
+%hook SBFolderBackgroundView
+
+// add background to the folder frame
+-(void)layoutSubviews {
+    
+    UIColor *selectedColor2 = [UIColor cscp_colorFromHexString:customFolderBackgroundColor];
+
+    NSArray<id> *gradientColors2 = [StringForPreferenceKey(@"customGradientFolderBackgroundColor") cscp_gradientStringCGColors];
+    
+    if(isEnabled){
+        
+        CAGradientLayer *gradient = [CAGradientLayer layer];
+        gradient.frame = self.bounds;
+
+        if(verticalFolderGradient){
+            gradient.startPoint = CGPointMake(0.5, 0);
+            gradient.endPoint = CGPointMake(0.5, 1);
+        } else {
+            gradient.startPoint = CGPointMake(0, 0.5);
+            gradient.endPoint = CGPointMake(1, 0.5);
+        }
+
+        gradient.colors = gradientColors2;
+
+           if(enableFolderBackgroundColor){
+
+            if(folderBackgroundColor && !gradientFolderBackgroundColor){
+                [self setBackgroundColor:selectedColor2];
+            }
+
+            if(!folderBackgroundColor && gradientFolderBackgroundColor){
+                [self.layer insertSublayer:gradient atIndex:0];
+            }
+
+            if(!folderBackgroundColor && !gradientFolderBackgroundColor){
+                %orig;
+            }
+
+            if(folderBackgroundColor && gradientFolderBackgroundColor){
+                [self setBackgroundColor:selectedColor2];
+            }
+
+        } else {
+            %orig;
+        }
+    } else {
+        %orig;
+    }
+
+
+}
+
+%end
+
+%hook SBIconListPageControl
+
+// hide the dots 
+-(void)layoutSubviews {
+
+    if(isEnabled){
+        if(hidePageDots){
+            [self setHidden:YES];
+        } else {%orig;}
+    } else {%orig;}
+
+}
+
+%end
+
+%hook SBFolderTitleTextField
+
+// modify the title
+-(void)layoutSubviews{
+
+    %orig;
+    UIColor *selectedColor3 = [UIColor cscp_colorFromHexString:customTextColor];
+    UIColor *selectedColor4 = [UIColor cscp_colorFromHexString:colorBackgroundTitle];
+
+    if(isEnabled){
+        if(enableTextColor){
+            [self setTextColor:selectedColor3];
+        }
+
+        if(titleTextAlignment == 0){
+            [self setTextAlignment:NSTextAlignmentLeft];
+        } else if(titleTextAlignment == 1){
+
+        } else if(titleTextAlignment == 2){
+            [self setTextAlignment:NSTextAlignmentRight];
+        }
+
+        if(enableBackgroundTitle){
+            [self setBackgroundColor:selectedColor4];
+            [self.layer setMasksToBounds:true];
+            [self.layer setCornerRadius:cornerRadiusBackgroundTitle];
+        }
+
+        if(boldTitle){
+            [self setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:(self.font.pointSize)]];
+        }
+        
+    } else {}
+
+}
+
+%end
+
+%hook SBFolderSettings
+-(BOOL)pinchToClose{
+    if(isEnabled){
+        if(pinchToClose){
+            return YES;
+        } else {return NO;}
+    } else {return NO;}
+}
+%end
+
+%hook SBHFolderSettings
+-(BOOL)pinchToClose{
+    if(isEnabled){
+        if(pinchToClose){
+            return YES;
+        } else {return NO;}
+    } else {return NO;}
+}
+%end
+%end
+
+%group ios12
 %hook SBIconGridImage
 
 + (CGSize)cellSize {
@@ -646,105 +1077,24 @@ void prefs(){
         } else {return orig;}
     } else {return orig;}
 }
-
+%end
 %end
 
-%hook SBFolderBackgroundView
+%group ios13
+%hook _SBIconGridWrapperView
+/* thank you for saving my life with this method burrit0z :) */
 
--(void)layoutSubviews {
-    
-    UIColor *selectedColor2 = [UIColor cscp_colorFromHexString:customFolderBackgroundColor];
-
-    NSArray<id> *gradientColors2 = [StringForPreferenceKey(@"customGradientFolderBackgroundColor") cscp_gradientStringCGColors];
-    
+-(void)layoutSubviews { 
+  %orig;
+  CGAffineTransform originalIconView = (self.transform);
+  
     if(isEnabled){
-        
-        CAGradientLayer *gradient = [CAGradientLayer layer];
-        gradient.frame = self.bounds;
-
-        if(verticalFolderGradient){
-            gradient.startPoint = CGPointMake(0.5, 0);
-            gradient.endPoint = CGPointMake(0.5, 1);
-        } else {
-            gradient.startPoint = CGPointMake(0, 0.5);
-            gradient.endPoint = CGPointMake(1, 0.5);
+        if(enableCustomLayout){
+            if(resizeFolderIcon){
+                self.transform = CGAffineTransformMake(setFolderIconSize,originalIconView.b,originalIconView.c,setFolderIconSize,originalIconView.tx,originalIconView.ty);
+            }
         }
-
-        gradient.colors = gradientColors2;
-
-           if(enableFolderBackgroundColor){
-
-            if(folderBackgroundColor && !gradientFolderBackgroundColor){
-                [self setBackgroundColor:selectedColor2];
-            }
-
-            if(!folderBackgroundColor && gradientFolderBackgroundColor){
-                [self.layer insertSublayer:gradient atIndex:0];
-            }
-
-            if(!folderBackgroundColor && !gradientFolderBackgroundColor){
-                %orig;
-            }
-
-            if(folderBackgroundColor && gradientFolderBackgroundColor){
-                [self setBackgroundColor:selectedColor2];
-            }
-
-        } else {
-            %orig;
-        }
-    } else {
-        %orig;
     }
-
-
-}
-
-%end
-
-%hook SBIconListPageControl
-
--(void)layoutSubviews {
-
-    if(isEnabled){
-        if(hidePageDots){
-            [self setHidden:YES];
-        } else {%orig;}
-    } else {%orig;}
-
-}
-
-%end
-
-%hook SBFolderTitleTextField
-
--(void)layoutSubviews{
-
-    %orig;
-    UIColor *selectedColor3 = [UIColor cscp_colorFromHexString:customTextColor];
-    UIColor *selectedColor4 = [UIColor cscp_colorFromHexString:colorBackgroundTitle];
-
-    if(isEnabled){
-        if(enableTextColor){
-            [self setTextColor:selectedColor3];
-        }
-
-        if(titleTextAlignment == 0){
-            [self setTextAlignment:NSTextAlignmentLeft];
-        } else if(titleTextAlignment == 1){
-
-        } else if(titleTextAlignment == 2){
-            [self setTextAlignment:NSTextAlignmentRight];
-        }
-
-        if(enableBackgroundTitle){
-            [self setBackgroundColor:selectedColor4];
-            [self.layer setMasksToBounds:true];
-            [self.layer setCornerRadius:cornerRadiusBackgroundTitle];
-        }
-        
-    } else {}
-
 }
 
 %end
@@ -753,4 +1103,10 @@ void prefs(){
 %ctor {
 	prefs();
     %init(all);
+
+    if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"13.0")) {
+        %init(ios13);
+    } else {
+        %init(ios12);
+    }
 }
