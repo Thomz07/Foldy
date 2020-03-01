@@ -134,6 +134,58 @@
                 <string>7</string>
             </array>
         </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>label</key>
+			<string>Hide Folder Icon Grid</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.thomz.foldyprefs</string>
+			<key>key</key>
+			<string>hideFolderIconGrid</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>label</key>
+			<string>Resize Folder Icon</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.thomz.foldyprefs</string>
+			<key>key</key>
+			<string>resizeFolderIcon</string>
+            <key>sublabel</key>
+            <string>This only works on iOS 13</string>
+        </dict>
+        <dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>min</key>
+			<integer>0</integer>
+			<key>max</key>
+			<integer>2</integer>
+			<key>isSegmented</key>
+			<false/>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.thomz.foldyprefs</string>
+			<key>key</key>
+			<string>setFolderIconSize</string>
+			<key>PostNotification</key>
+			<string>com.thomz.foldy.prefsChanged</string> 
+		</dict>
     </array>
 	<key>title</key>
 	<string>Custom Layout</string>

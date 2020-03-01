@@ -52,8 +52,7 @@
 			<key>key</key>
 			<string>hideTitle</string>
 		</dict>
-		<!--This makes my folder crash when i open it ?-->
-		<!--<dict>
+		<dict>
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>label</key>
@@ -64,7 +63,7 @@
 			<string>com.thomz.foldyprefs</string>
 			<key>key</key>
 			<string>boldTitle</string>
-		</dict>-->
+		</dict>
         <dict>
             <key>cell</key>
             <string>PSGroupCell</string>

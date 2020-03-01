@@ -8,7 +8,7 @@ HBPreferences *preferences;
 - (NSArray *)specifiers {
 	if (!_specifiers) {
 		_specifiers = [self loadSpecifiersFromPlistName:@"Layout" target:self];
-		NSArray *chosenLabels = @[@"numberOfRowsColumns", @"customLayoutRows", @"customLayoutColumns"];
+		NSArray *chosenLabels = @[@"numberOfRowsColumns", @"customLayoutRows", @"customLayoutColumns", @"setFolderIconSize"];
 		self.mySavedSpecifiers = (!self.mySavedSpecifiers) ? [[NSMutableDictionary alloc] init] : self.mySavedSpecifiers;
 		for(PSSpecifier *specifier in [self specifiers]) {
 			if([chosenLabels containsObject:[specifier propertyForKey:@"key"]]) {
@@ -28,6 +28,7 @@ HBPreferences *preferences;
 		preferences = [[HBPreferences alloc]initWithIdentifier:@"com.thomz.foldyprefs"];
 		BOOL enableCustomPremadeLayout = [preferences boolForKey:@"enableCustomPremadeLayout"];
 		BOOL enableCustomCustomLayout = [preferences boolForKey:@"enableCustomCustomLayout"];
+		BOOL resizeFolderIcon = [preferences boolForKey:@"resizeFolderIcon"];
 
 		if(enableCustomPremadeLayout == NO){
          [self removeContiguousSpecifiers:@[self.mySavedSpecifiers[@"numberOfRowsColumns"]] animated:YES];
@@ -39,6 +40,12 @@ HBPreferences *preferences;
 			[self removeContiguousSpecifiers:@[self.mySavedSpecifiers[@"customLayoutRows"], self.mySavedSpecifiers[@"customLayoutColumns"]] animated:YES];
 		} else if(enableCustomCustomLayout == YES && ![self containsSpecifier:self.mySavedSpecifiers[@"customLayoutRows"]] && ![self containsSpecifier:self.mySavedSpecifiers[@"customLayoutColumns"]]) {
 			[self insertContiguousSpecifiers:@[self.mySavedSpecifiers[@"customLayoutRows"], self.mySavedSpecifiers[@"customLayoutColumns"]] afterSpecifierID:@"Use Custom Layout" animated:YES];
+		}
+
+		if(resizeFolderIcon == NO){
+         [self removeContiguousSpecifiers:@[self.mySavedSpecifiers[@"setFolderIconSize"]] animated:YES];
+		} else if(resizeFolderIcon == YES && ![self containsSpecifier:self.mySavedSpecifiers[@"setFolderIconSize"]]) {
+			[self insertContiguousSpecifiers:@[self.mySavedSpecifiers[@"setFolderIconSize"]] afterSpecifierID:@"Resize Folder Icon" animated:YES];
 		}
 
 }
@@ -56,6 +63,7 @@ HBPreferences *preferences;
 	preferences = [[HBPreferences alloc]initWithIdentifier:@"com.thomz.foldyprefs"];
 	BOOL enableCustomPremadeLayout = [preferences boolForKey:@"enableCustomPremadeLayout"];
 	BOOL enableCustomCustomLayout = [preferences boolForKey:@"enableCustomCustomLayout"];
+	BOOL resizeFolderIcon = [preferences boolForKey:@"resizeFolderIcon"];
 
 	if(enableCustomPremadeLayout == NO){
 		[self removeContiguousSpecifiers:@[self.mySavedSpecifiers[@"numberOfRowsColumns"]] animated:YES];
@@ -63,6 +71,10 @@ HBPreferences *preferences;
 
 	if(enableCustomCustomLayout == NO){
 		[self removeContiguousSpecifiers:@[self.mySavedSpecifiers[@"customLayoutRows"], self.mySavedSpecifiers[@"customLayoutColumns"]] animated:YES];
+	}
+
+	if(resizeFolderIcon == NO){
+		[self removeContiguousSpecifiers:@[self.mySavedSpecifiers[@"setFolderIconSize"]] animated:YES];
 	}
 
 }

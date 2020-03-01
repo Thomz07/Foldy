@@ -104,6 +104,20 @@
 		</dict>
 		<dict>
 			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Pinch to Close</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.thomz.foldyprefs</string>
+			<key>key</key>
+			<string>pinchToClose</string>
+			<key>PostNotification</key>
+			<string>com.thomz.foldy.prefsChanged</string> 
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSGroupCell</string>
 		</dict>
 		<dict>
@@ -209,6 +223,16 @@
 			<string>Thenatis - Icon and Banner design</string>
 			<key>user</key>
 			<string>thenatis1</string>
+		</dict>
+		<dict>
+			<key>cellClass</key>
+			<string>HBLinkTableCell</string>
+			<key>icon</key>
+			<string>example.png</string>
+			<key>label</key>
+			<string>Thanks to burrit0z for helping me</string>
+			<key>url</key>
+			<string>https://www.reddit.com/user/Burrit0z_Dev/</string>
 		</dict>
 		<dict>
 			<key>cell</key>
