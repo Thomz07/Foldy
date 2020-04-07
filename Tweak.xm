@@ -1100,9 +1100,40 @@ void prefs(){
 %end
 %end
 
+%group EOL
+
+%hook SBIconController
+
+-(void)viewDidAppear:(BOOL)animated{
+    %orig;
+    UIAlertController *alertController = [UIAlertController
+        alertControllerWithTitle:@"RIP Foldy"
+        message:@"Hey user, I'm sorry to tell you that but Foldy is discontinued. But it has been replaced by a better Tweak called Folded. \n Get Folded on Packix for free, you'll love it"
+        preferredStyle:UIAlertControllerStyleAlert
+    ];
+
+    [alertController addAction:[UIAlertAction actionWithTitle:@"Check Folded" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        UIApplication *application = [UIApplication sharedApplication];
+        [application openURL:[NSURL URLWithString:@"https://repo.packix.com/package/xyz.burritoz.thomz.folded"] options:@{} completionHandler:nil];
+
+        [self dismissViewControllerAnimated:YES completion:NULL];
+    }]];
+
+    [alertController addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [self dismissViewControllerAnimated:YES completion:NULL];
+    }]];
+
+    [self presentViewController:alertController animated:YES completion:NULL];
+}
+
+%end
+
+%end
+
 %ctor {
 	prefs();
     %init(all);
+    %init(EOL);
 
     if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"13.0")) {
         %init(ios13);

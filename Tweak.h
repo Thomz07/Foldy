@@ -19,3 +19,6 @@
 @property (nonatomic, assign) BOOL viewIsAFolder;
 -(BOOL)detectFolders;
 @end
+
+@interface SBIconController : UIViewController
+@end

@@ -1,7 +1,7 @@
 Package: com.thomz.foldy
 Name: Foldy
 Depends: mobilesubstrate, ws.hbang.common, com.creaturesurvive.libcscolorpicker
-Version: 1.1
+Version: 1.1~EOL
 Architecture: iphoneos-arm
 Description: Make folders yours
 Maintainer: Thomz
